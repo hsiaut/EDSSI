@@ -1,4 +1,4 @@
-import os, hashlib, sys, re, xmltodict
+import os, hashlib, sys, re, xmltodict, shutil
 from urllib import urlopen
 from GenePredictionReader import NCBIProteinEntry, GenePrediction
 from CommonDNA import gencode, reverseComplement, translate, complement_alphabet
@@ -109,7 +109,7 @@ def blastdbcmdProteinFasta(ncbiId):
 #IN sequence and blast commands
 #OUT list of lists, each line is a row in the output (sans comments)
 #cachetype is a textual descriptor of which blast search was done, it will showup in the cache file name
-def blastCmdHelper(sequence, command, test_flag, outputdir, filename, cachetype):
+def blastCmdHelper(sequence, command, test_flag, outputdir, filename, cachetype, outdir):
 	#todo: change the tempin tempout names to a unique hash
 	results = []
 	uniqueName = md5sum(sequence)
@@ -132,6 +132,7 @@ def blastCmdHelper(sequence, command, test_flag, outputdir, filename, cachetype)
                         continue
                 k = line.split("\t")
 		results.append(k)
+	shutil.copy2(tempout, outdir+"/blast"+cachetype)
         #os.remove(tempin)
         #os.remove(tempout)
 	return results
@@ -141,7 +142,7 @@ def blastCmdHelper(sequence, command, test_flag, outputdir, filename, cachetype)
 def FindHomologs(sequence, test_flag, outputdir, database):
 	homologs = []
 	num_hits = 1000
-	blastresults = blastCmdHelper(sequence, "./blastp -db "+database+" -remote -evalue 1e-25 -max_target_seqs "+str(num_hits), test_flag, outputdir, "findhomologs", database+"blast")
+	blastresults = blastCmdHelper(sequence, "./blastp -db "+database+" -remote -evalue 1e-50 -max_target_seqs "+str(num_hits), test_flag, outputdir, "findhomologs", database+"blast", outputdir)
 	for k in blastresults:
 		alnlen = int(k[3]) #length of blast alignment
 		alnid = float(k[2]) #percent identity of blast alignment
@@ -200,7 +201,7 @@ def CDLookUp(ncbiId):
 def FindConservedDomains(sequence, test_flag, outputdir):
 	conservedDomains=[]
 	cmd = "./rpstblastn -remote -db cdd -evalue 1e-25"
-	blastresults = blastCmdHelper(sequence, cmd, test_flag, outputdir, "conserveddomains", "cddblast")
+	blastresults = blastCmdHelper(sequence, cmd, test_flag, outputdir, "conserveddomains", "cddblast", outputdir)
 	for k in blastresults:
 		if k[1].startswith("gnl"):
 			cddId = k[1].split("|")[2]
