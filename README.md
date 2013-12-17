@@ -8,7 +8,9 @@ An API service is available at  http://andersonlab.qb3.berkeley.edu/Software/EDS
 
 example curl command
 
-curl -X POST -F "api=1" -F "inputSeq=@myfilename" http://andersonlab.qb3.berkeley.edu/Software/EDSSI/syntaxchecker.php
+curl -X POST -F "api=1" -F "inputSeq=&lt;myfilename" http://andersonlab.qb3.berkeley.edu/Software/EDSSI/syntaxchecker.php
+
+Where myfilename is an input fasta file. The < in front of the file name will tell curl to read the file contents and append it to the POST string.
 
 
 
