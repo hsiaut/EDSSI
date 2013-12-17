@@ -10,7 +10,7 @@ example curl command
 
 curl -X POST -F "api=1" -F "inputSeq=&lt;myfilename" http://andersonlab.qb3.berkeley.edu/Software/EDSSI/syntaxchecker.php
 
-Where myfilename is an input fasta file. The < in front of the file name will tell curl to read the file contents and append it to the POST string.
+Where myfilename is an input fasta file. The < in front of the file name will tell curl to read the file contents and append it to the POST string.  The API will time out after 10 minutes.
 
 
 
