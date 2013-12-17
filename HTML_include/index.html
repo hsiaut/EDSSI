@@ -1,0 +1,594 @@
+                                           
+<html>
+<head>
+<title>
+DNASyntaxChecker
+</title>
+
+<link href="http://andersonlab.qb3.berkeley.edu/syntaxchecker/favicon.ico" rel="shortcut icon">
+<!--[if IE]>
+<script type="text/javascript">
+window.location = "../../ie.html";
+</script>
+<![endif]-->
+
+<style type="text/css">
+
+
+
+#ctrlPanel{ float:right; }
+body {font-family:Arial, sans-serif }
+.error0 {background-color:#FF2222; color:#222222}
+.error1 {background-color:#FF9999; color:#222222}
+.error2 {background-color:#FFBBBB; color:#222222}
+.error3 {background-color:#FFBBBB; color:#222222}
+.error4 {background-color:#FFBBBB; color:#222222}
+.error5 {background-color:#FFCCCC; color:#222222}
+.error6 {background-color:#FFCCCC; color:#222222}
+.error7 {background-color:#FFDDDD; color:#222222}
+.error8 {background-color:#FFEEEE; color:#222222}
+.error9 {background-color:#FFFFFF; color:#222222}
+.error10 {background-color:#FFFFFF; color:#222222;
+cursor:pointer;
+position: relative;}
+.pos10:hover ~ .pos10 {background-color:#AAAAFF;}
+.error10:hover {background-color:#AAAAFF;}
+
+.error2:hover {background-color:#AAAAFF;}
+.error3:hover {background-color:#AAAAFF;}
+.error0:hover {background-color:#AAAAFF;}
+.error1:hover {background-color:#AAAAFF;}
+
+.exactmatch {background-color: #2A2;}
+.nonexactmatch {background-color:#FFAA22;}
+.nomatch {background-color:#333333;}
+
+
+.A, .V, .F, .P, .M, .I, .L, .W {
+    color: red;
+}
+
+.D, .E {
+    color: blue;
+}
+
+.R, .K {
+    color: fuchsia;
+}
+
+.S, .T, .Y, .H, .C, .N, .G, .Q {
+    color: green;
+}
+
+
+#legend {background-color:#AAAAFF; color:#222222}
+#numbering {font-weight:bold;}
+
+.header {
+padding: 1px;
+}
+.content {
+	display:none;
+}
+
+.drawnORF{
+color:#22F;
+}
+a {
+border-bottom: 1px dotted #000000; color: #000000; outline: none;
+                        text-decoration: none;
+}
+a:visited {
+     color: #AA6666;
+}
+.tooltip {
+			border-bottom: 1px dotted #000000; color: #000000; outline: none;
+			text-decoration: none;
+			position: relative;
+		}
+
+		.tooltip span {
+			margin-left: -999em;
+			position: absolute;
+		}
+.tooltip:hover { background-color:#AAAACC;}
+		.tooltip:hover span {
+			border-radius: 5px 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; 
+			box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1); -webkit-box-shadow: 5px 5px rgba(0, 0, 0, 0.1); -moz-box-shadow: 5px 5px rgba(0, 0, 0, 0.1);
+			font-family: Calibri, Tahoma, Geneva, sans-serif;
+			position: absolute; left: 1em; top: 2em; z-index: 99;
+			margin-left: 0; 
+			
+		}
+
+		.tooltip:hover img {
+			border: 0; margin: -10px 0 0 -55px;
+			float: left; position: absolute;
+		}
+
+		.tooltip:hover em {
+			font-family: Candara, Tahoma, Geneva, sans-serif; font-size: 1.2em; font-weight: bold;
+			display: block; padding: 0.2em 0 0.6em 0;
+		}
+
+		.classic { padding: 0.8em 1em; }
+		.custom { padding: 0.5em 0.8em 0.8em 2em; }
+		* html a:hover { background: transparent; }
+		.classic {background: #FFFFAA; border: 1px solid #FFAD33; }
+		.critical { background: #FFCCAA; border: 1px solid #FF3334;	}
+		.help { background: #9FDAEE; border: 1px solid #2BB0D7;	}
+		.info { background: #9FDAEE; border: 1px solid #2BB0D7;	}
+		.warning { background: #FFFFAA; border: 1px solid #FFAD33; }
+
+
+
+pre {
+    font-family: courier;
+}
+
+.naviGuide {
+background-color: #AAAAAA;
+}
+
+
+
+</style>
+
+<script type="text/javascript">
+var syntaxcheckerout ='';
+var syntaxcheckeroutput = '';
+</script>
+
+<script type="text/javascript" src="out.js">//loads the output from syntaxchecker</script>
+
+<script type="text/javascript">
+//thanks to Pierre for initial script http://biostar.stackexchange.com/questions/10987/word-wrapping-alignment-with-javascript-css
+//tooltip css from http://sixrevisions.com/css/css-only-tooltips/
+
+syntaxcheckerout = syntaxcheckeroutput.ORFs;
+
+// function text(s)
+//     {
+//     return document.createTextNode(s);
+//     }
+function PMIDlistToLink(list)
+    {
+        var retText ="";
+//takes list of pmids, returns list of links
+        for(var i=0; i<list.length; i++){
+                var id = list[i]['pmid'];
+// "<a class=\"tooltip\" href=\"http://www.ncbi.nlm.nih.gov/protein/"+protein_ids[i%num_seqs]+"\" target=\"_blank\">"+names[i%num_seqs].substring(0,12)+"<span class=\"classic\">"+names[i%num_seqs]+"</span></a>"
+		retText += id+",";
+        }
+        return retText;
+}
+
+function layout(inputObj)
+    {
+        //inputobj corresponds to the "alignment" object
+    var num_seqs=inputObj.num_seqs;
+    var sequences = inputObj.sequences;
+    var names = inputObj.names;
+    var protein_ids= inputObj.protein_ids;
+    var fasta_names= inputObj.fasta_names;
+    var scoring_track = inputObj.scoring_track;
+	//assume top line is reference
+    var font=15;
+    var pubmed = document.getElementById("pmidLink");
+    pubmed.href = "http://www.ncbi.nlm.nih.gov/pubmed/"+PMIDlistToLink(inputObj.pubmedInfos)+"?report=abstract";
+  
+    var maf=document.getElementById("maf");
+    maf.style.fontSize=""+font+"px";
+    while(maf.hasChildNodes())
+        {
+        maf.removeChild(maf.firstChild);
+        }
+    var windowWidth=document.body.offsetWidth;
+    var aln_char_ctr=0;  //line_ctr
+	var display_ctr=0; //display ctr that tracks the position in the reference sequence
+	var new_html = "";
+    var ctr = 0;
+    while(aln_char_ctr<sequences[0].length)
+        {
+        var len=sequences[0].length-aln_char_ctr;
+        while((len+20)*font*0.65 >=windowWidth) len--;
+        if(len<1) len=1;
+        for(var i=0;i< sequences.length;++i){
+            var wilkom = sequences[i].substring(aln_char_ctr,aln_char_ctr+len);
+            var no_gap_len = wilkom.replace(/=/g, "").replace(/-/g,"").length;
+
+	new_html = new_html +"<tr>";
+            if(i%num_seqs==0){
+				var counter_display_text = 0;
+				if(display_ctr+no_gap_len>0){
+					counter_display_text = display_ctr +1;
+				}
+				new_html = new_html + "<span id=\"numbering\">"+(counter_display_text)+" Your Input</span>";  //sequence position counter on left of alignment
+			}
+			if(i%num_seqs>0){ //not the reference line
+			var num_chars = 12;
+			new_html = new_html + "<a class=\"tooltip\" href=\"http://www.ncbi.nlm.nih.gov/protein/"+protein_ids[i%num_seqs]+"\" target=\"_blank\">"+names[i%num_seqs].substring(0,12)+"<span class=\"classic\">"+names[i%num_seqs]+"</span></a>";  //display read names on left of the alignment, substring max len 12
+			}
+			new_html = new_html+"\t";
+			var wilkom2 ="";
+			//put in the tooltip positions for ref seq, and color the errors
+                    wilkom2 = "";
+                    for(var iter=aln_char_ctr; iter < aln_char_ctr+len; iter++){
+                        var error_level = Math.round(scoring_track[iter]*10); 
+			var char_text = "";
+                        if(error_level < 0.501){
+                         char_text = '<span class="error'+error_level+'">'+sequences[i][iter]+'</span>';
+                        }
+                        else{
+                            char_text = '<span class="'+sequences[i][iter]+'">'+sequences[i][iter]+'</span>';
+                        }
+                        wilkom2 += char_text;
+
+
+                    }
+					//wilkom2 = wilkom.replace(/([a-z,=])/g, "<span class=\"error0\">$1</span>");
+
+
+
+						//	wilkom2 = wilkom.replace(/([a-z])/g, "<span class=\"error0\">$1</span>");
+    			new_html = new_html + wilkom2;
+    			new_html = new_html + "     "; //can't use \t, it sometimes overflows screen width
+			
+    			if(i%num_seqs==0){
+    				new_html = new_html + "<span id=\"numbering\">"+(display_ctr+no_gap_len)+"</span>";  //sequence position counter on right of alignment
+    				display_ctr+=no_gap_len;
+    			}
+    			if(i%num_seqs==1){
+    			    new_html = new_html;
+    			}
+			new_html = new_html + "\n";
+            }
+        aln_char_ctr+=len;
+
+		new_html=new_html+"\n";
+		ctr++;
+        }
+	maf.innerHTML= new_html;
+	}
+
+var current_alignment = syntaxcheckerout[0].alignment;
+window.addEventListener( "resize", function(){layout(current_alignment)}, false);
+window.addEventListener( "load", function(){layout(current_alignment)}, false);
+
+</script>
+
+
+
+
+</head>
+<body>
+
+<script src="raphael-min.js"></script>
+<script src="json2.js"></script>
+
+<script type="text/javascript">
+
+var opt = true;
+window.addEventListener( "resize", function(){drawOutput(opt);}, false);
+window.addEventListener( "load", function(){drawOutput(opt);}, false);
+function toggleNames(){
+    opt = !opt;
+    drawOutput(opt);
+    if(opt){
+      document.getElementById('toggle').src = "../../img/check.svg";
+
+    }
+    else{
+       document.getElementById('toggle').src = "../../img/check-empty.svg";
+    }
+}
+//expanding divs
+
+
+function drawOutput(opt){
+    var windowWidth = 0.8* document.body.offsetWidth;
+    document.getElementById('canvas_container').innerHTML ="";
+	var paper = new Raphael(document.getElementById('canvas_container'),windowWidth,200);
+
+//M = moveto
+//L = lineto
+//Z = closepath
+//dimensions/ratios for the ORF
+//http://www.invivogen.com/images/pCpGfree-promoter.gif
+//overlapping ORFs
+//need to have multiple tracks, so basically the 2nd ORF would be on lower track
+//example: 
+
+
+//draws the entire panel, scales the input to match the paper size
+//
+function drawPanel(inputJson ){
+	//InputJson should have the following:
+	//length = total length of plasmid/input DNA
+	//type = circular or linear, for now, only allow linear
+	//features = dict or array of all the features to be drawn
+	//name
+}
+
+//input: length of dna, list of ORFs, list of features, essentially
+//software then rescales the ORF positions
+//draws using js/svg
+//there are 7 points that define an ORF outline.  however, the user should only have 2 inputs, the start and stop pos (which gets scaled by the software to the window width)
+
+//start and stop dimensions are in pixels
+//type is "good" and "bad"
+//paper is the raphael obj
+//orientation is '+' or '-' for fwd or rev
+//track is 1, 2, 3... which vertical track to place graphics on
+function drawORF(type, start, stop, orientation, text ,link, track, paper, id, myORFs, data_id, errors, leninAA){
+    //TODO, if stop-start < tri, then only display a triangle
+    var path_str = '';
+    var orf = paper.path;
+    var box_width = 20;
+    var pitch = 40 ; //distance from mid to mid of each track
+    var y_offset = 55; //where should the middle of the first track start
+    var mid = y_offset+ pitch*(track-1);
+    var box_top = mid - box_width/2;
+    var box_bottom = mid + box_width/2;
+    var tri_width = 4; //vertical distance
+    var tri_top = box_top - tri_width;
+    var tri_bottom = box_bottom + tri_width;
+    var tri = 9; //horizontal distance, how far does the triangle go past the box
+
+    var hilt = stop-tri; //for fwd orientation
+    var revhilt = start+tri; // for rev orientation
+    //text coordinates //text positions the very center of the textbox
+    var text_mid = mid + 15;
+    var text_horiz_mid = (start+stop)/2;
+   if (start > hilt){
+	start = hilt;
+   }
+   if (stop < revhilt){
+	stop = revhilt;
+   } 
+    //for + orientation
+    if(orientation == '+'){
+        // M start box_top L end-tri box_top L end-tri tri_top L end mid L end-try tri_bottom L end-try box_bottom L start box_bottom Z
+        path_str = 'M '+start+' '+box_top; //top left of orf diagram, go clockwise
+        path_str += ' L '+hilt+' '+box_top;
+        path_str += ' L '+hilt+' '+tri_top;
+        path_str += ' L '+stop+' '+mid;
+        path_str += ' L '+hilt+' '+tri_bottom;
+        path_str += ' L '+hilt+' '+box_bottom;
+        path_str += ' L '+start+' '+box_bottom;
+        path_str += ' Z';
+    }
+    //for - orientation
+    else{
+        path_str = 'M '+stop+' '+box_top; //start at top right and go clockwise
+        path_str += ' L '+stop+' '+box_bottom;
+        path_str += ' L '+revhilt+' '+box_bottom;
+        path_str += ' L '+revhilt+' '+tri_bottom;
+        path_str += ' L '+start+' '+mid;
+        path_str += ' L '+revhilt+' '+tri_top;
+        path_str += ' L '+revhilt+' '+box_top;
+        path_str += ' Z';
+    }
+    var orf_color = '';
+    //choose color based on if orf is good or bad
+    type1_color = '#2A2';
+    type2_color = '#FFAA22';
+    type3_color = '#333333';
+    if(type == 1){
+        orf_color = type1_color;
+    }
+    else if(type == 2){
+	orf_color = type2_color;
+    }
+    else{
+        orf_color = type3_color;
+    }
+    mouseover_color = '#EEE';
+    var orf = paper.path(path_str).attr({
+        'fill' : orf_color,
+        'stroke-width' : '2',
+        'opacity' : 0.8
+        //href: link
+    })
+//draw error bar
+    for (var z = 0; z < errors.length ; z++){
+    var temp = errors[z] / leninAA * (stop - start) + start;
+    if (orientation == '-'){
+	temp = stop - (errors[z] / leninAA * (stop - start));
+    }
+    var error = paper.path('M '+temp+' '+box_top+' L '+temp+' '+box_bottom+' Z').attr({
+	'stroke': "#F00",
+	'stroke-width' : '3'
+    })
+}
+    orf.data('orf_type', orf_color);
+    var orfAnnotationText = paper.text(text_horiz_mid, text_mid, text);
+    orfAnnotationText.attr(
+        {
+            'font-size':13
+            //href: link
+        }
+    )
+    alignTop(orfAnnotationText);
+    var group = paper.set(); //make text and orf part of same set
+    group.push(orfAnnotationText);
+    group.push(orf);
+    group.click(
+        //coming_in
+        function() {
+            //change color of previously selected ORFs!
+            for (var i = 0; i < myORFs.length; i++) {
+                if(myORFs[i] == this){
+                    continue;
+                }
+                myfill = myORFs[i].data('orf_type');
+                myORFs[i].attr({fill: myfill });
+            }
+            group[1].attr({fill: mouseover_color});
+            current_alignment= syntaxcheckerout[data_id].alignment;
+            layout(current_alignment);
+            document.getElementById("maf").style.display= 'block';
+         })
+
+    myORFs.push(orf);
+}
+
+function alignTop(t) {
+    var b = t.getBBox();
+    var h = Math.abs(b.y2) - Math.abs(b.y);
+    //alert(b.y2);
+    t.attr({
+        'y': b.y + h -5
+    });
+}
+
+//draw the ruler
+function drawRuler(paper, constructLength, x_Offset){
+    var y_offset = 20;
+    var rulerSVGcmd = "M "+x_Offset+" "+y_offset+" L "+windowWidth+" "+y_offset;
+    
+    //add the tick marks, we want a divisor of constructLength that yields ~ 10 tick marks
+    var numTicks = 10;
+    var tick = constructLength/numTicks;
+    tick = Math.round(tick/10.0)*10; //round to nearest ten
+    for (k=0; k< numTicks; k++){
+        //scale from bp to px
+        var tock = k*tick / constructLength * windowWidth + x_Offset;
+        rulerSVGcmd += " M "+tock+" "+y_offset+" L "+tock+" "+(y_offset+5);
+        //display the coordinates
+	var tick_text = k*tick+"bp";
+        var coordLabel = paper.text(tock, y_offset+12, tick_text);
+        coordLabel.attr({'font-size':10});
+    }
+    var ruler = paper.path(rulerSVGcmd);//"M 10 2 L 400 2 M 20 1 L 20 10 M 30 1 L 30 10 M 40 1 L 40 10");
+    ruler.attr("stroke", "#000");
+}
+
+
+
+var xOffset = 10;
+var constructLength = syntaxcheckeroutput.length; //bp
+var inputName = syntaxcheckeroutput.inputName;
+//var inputName = "lololol";
+drawRuler(paper, constructLength, xOffset);
+//write input name
+var inputLabel = paper.text(50, 10, inputName);
+inputLabel.attr({'font-size':14});
+myORFs = paper.set();
+//this keeps track of which positions in each track are already occupied
+var trackOccupancy = new Array();
+
+Object.prototype.keys = function ()
+{
+  var keys = [];
+  for(var i in this) if (this.hasOwnProperty(i))
+  {
+    keys.push(i);
+  }
+  return keys;
+}
+
+
+for (var k = 0; k < syntaxcheckerout.length; k++){
+    //if start > stop, orientation is "-", else orientation is "+"
+    var ORFtype = syntaxcheckerout[k].ORFtype;
+    var orientation = syntaxcheckerout[k].orientation;
+    var ORFstart = parseInt(syntaxcheckerout[k].start );
+    var ORFstop = parseInt(syntaxcheckerout[k].stop);
+    var scaled_start = Math.round(ORFstart/constructLength * (windowWidth-xOffset));
+    var scaled_stop = Math.round(ORFstop/constructLength * (windowWidth-xOffset))-2;
+    var exact_match = syntaxcheckerout[k].exact_match;
+    var description = syntaxcheckerout[k].description;
+    var errors = syntaxcheckerout[k].errors.keys();
+    var leninAA = (ORFstop - ORFstart )/ 3;
+    var track_num = 1;
+    //go through occupancy tracks and figure out where it's safe to place this ORF
+    for (var z=0; z < trackOccupancy.length; z++){
+        var ORFptr = trackOccupancy[z];
+        if (ORFptr[0] < ORFstart && ORFptr[1] > ORFstart){
+                track_num = ORFptr[2] + 1;
+        }
+        if (ORFptr[1] > ORFstop && ORFptr[0] < ORFstop){
+                track_num = ORFptr[2] +1;
+        }
+    }
+    var occupied = new Array();
+    occupied[0] = ORFstart;
+    occupied[1] = ORFstop;
+    occupied[2] = track_num;
+    trackOccupancy.push(occupied);
+    //description array
+    var labels = description.split(" ");
+    var displayText = "";
+    for (var idx=0; idx < labels.length; idx++){
+        var text = labels[idx];
+	var prefix = text.substring(0,3);
+        displayText += text +"\n";
+    }
+//document.getElementById("console_text").innerHTML = description;
+if (!opt){displayText = "";}
+
+    drawORF(ORFtype, scaled_start+xOffset, scaled_stop+xOffset, orientation, (k+1)+":\n"+displayText, 'http://www.google.com', track_num, paper, "maf", myORFs, k, errors, leninAA);
+}
+
+
+
+
+
+
+
+}
+</script>
+
+
+
+Click ORFs to see their alignment
+<br>
+<div id="ctrlPanel">
+<a href="javascript:void(0)" onclick="toggleNames()"><img id="toggle" src="../../img/check.svg" width="12" height="12"/> Label Display</a>
+
+<a href="out.js" title="Download json file"><img src="../../img/download.svg" height="20" width="20"/>json</a>
+<a href="out.fa" title="Download fasta file of all protein hits"><img src="../../img/download.svg" height="20" width="20"/>fasta</a>
+<a href="out.gbk" title="Download annotated gbk file of input"><img src="../../img/download.svg" height="20" width="20"/>gbk</a>
+<a id="pmidLink" href="#pubmed" title="Literature for Selected Gene" target="_blank"><img src="../../img/book.svg" height="20" width="20" />Literature</a>
+<a href="http://andersonlab.qb3.berkeley.edu/Software/syntaxchecker" title="Run another job"><img src="../../img/home.svg" height="20" width="20"/>Home</a>
+</div>
+
+<div id="canvas_container">
+
+</div>
+<div id="errBarLegend">
+Error Bar Legend:
+<span id="legend">
+Error likely  <span class="error0">&nbsp;&nbsp;</span><span class="error1">&nbsp;&nbsp;</span><span class="error2">&nbsp;&nbsp;</span><span class="error3">&nbsp;&nbsp;</span><span class="error4">&nbsp;&nbsp;</span><span class="error5">&nbsp;&nbsp;</span><span class="error6">&nbsp;&nbsp;</span><span class="error7">&nbsp;&nbsp;</span><span class="error8">&nbsp;&nbsp;</span><span class="error9">&nbsp;&nbsp;</span> Unlikely </span>
+</div>
+
+<div id="orfLegend">
+ORF Legend:
+<span class="exactmatch">Exact Match found</span>
+<span class="nonexactmatch">Matches found, but no exact hit</span>
+<span class="nomatch">No match found</span>
+</div>
+
+
+<div id="console_text">
+</div>
+
+<pre id="maf">none</pre>
+
+
+</body>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-40377843-1', 'berkeley.edu');
+  ga('send', 'pageview');
+
+</script>
+
+
+</html>
