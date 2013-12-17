@@ -4,6 +4,14 @@ Paper abstract:
 DNAs encoding for polypeptides often contain design errors that cause experiments to prematurely fail.  One class of design errors is incorrect or missing elements in the DNA, referred to here as syntax errors.  We have identified three major causes of syntax errors: point mutations from sequencing or manual data entry, gene structure misannotation, and unintended ORFs.  EDSSI is an online bioinformatics pipeline that checks for syntax errors through three steps.   First, ORF prediction in input DNA sequences is done by GeneMark; next, homologous sequences are retrieved by BLAST; and finally, syntax errors in the protein sequence are predicted by using the SIFT algorithm.  We show that EDSSI is able to identify previously published examples of syntatical errors and also show that our indel addition to the SIFT program is 97% accurate on a test set of E. coli proteins.  EDSSI is available at http://andersonlab.qb3.berkeley.edu/Software/EDSSI/
 
 
+An API service is available at  http://andersonlab.qb3.berkeley.edu/Software/EDSSI/syntaxchecker.php
+
+example curl command
+
+curl -X POST -F "api=1" -F "inputSeq=@myfilename" http://andersonlab.qb3.berkeley.edu/Software/EDSSI/syntaxchecker.php
+
+
+
 
 Software Notes:
 
