@@ -111,7 +111,11 @@ def SyntaxCompare(geneprediction, cutoff):
 	errors = {} #dict with key = position, value = the correct amino acid
 	variance_score = 0 #used to compute how divergent the sequences are
 	aln_idx = 0
+	preAln = True
+	postAln = False
 	for c in alignment[0]:
+		if c != "-":
+			preAln = False
 		#look at the other characters and compute something
 		D = 1
 		N_c = len(alignment)
@@ -193,7 +197,15 @@ def SyntaxCompare(geneprediction, cutoff):
 			p_ca = scoring_track[aln_idx] #retain sift score
 		else:
 			#for now, use simple ratio for gaps
-			p_ca = g_ca
+			#check if pre or post-input
+			remaining_characters = set( alignment[0][aln_idx:] )
+			
+			if (list(remaining_characters) == ['-']):
+				postAln = True
+			if (preAln or postAln):
+				p_ca = g_ca/8
+			else:
+				p_ca = g_ca
 		p_ca = round(p_ca, 3)
 		scoring_track[aln_idx] =p_ca
 		if debug:
